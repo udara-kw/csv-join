@@ -1,6 +1,6 @@
-#CSV Join
+#HQ Server v2
 ## Description
-CSV Join HQ Server (NestJS) + Database (MongoDB)
+New NameRider HQ Server (NestJS) + Database (Postgres)
 ## Installation
 
 ```bash
