@@ -1,0 +1,32 @@
+version: "3.8"
+services:
+    api:
+        # image: /dockerexample/src/app
+        build:
+            dockerfile: Dockerfile
+            context: .
+        depends_on: 
+            - postgres
+        environment: 
+            DATABASE_URL: postgres://user:password@postgres:5432/db
+            NODE_ENV: development
+            PORT: 3000
+        ports:
+            - "3000:3000"
+
+    postgres:
+        image: postgres:10.4
+        environment: 
+            POSTGRES_USER: user
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: db
+
+    pgadmin:
+        image: dpage/pgadmin4:latest
+        ports:
+            - "3005:80"
+        environment:
+            PGADMIN_DEFAULT_EMAIL: dile@gmail.com
+            PGADMIN_DEFAULT_PASSWORD: dile123
+        depends_on: 
+            - postgres
