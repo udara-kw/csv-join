@@ -3,17 +3,15 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UserEntity } from '../models/user.entity';
-import { Repository } from 'typeorm';
-import { UserI } from '../models/user.interface';
+import { User, UserDocument } from '../models/user.schema';
 import { Logger } from 'winston';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
-    @InjectRepository(UserEntity)
-    private userRepository: Repository<UserEntity>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     @Inject('winston')
     private readonly logger: Logger,
   ) {}
@@ -22,8 +20,8 @@ export class UsersService {
    * Selects all rows from user table
    * @return {[Promise<UserEntity[]>]} [Returns all rows from user table]
    */
-  findAll(): Promise<UserEntity[]> {
-    return this.userRepository.find();
+  findAll(): Promise<UserDocument[]> {
+    return this.userModel.find().exec();
   }
 
   /*
@@ -31,8 +29,8 @@ export class UsersService {
    * @param {[string]} username [Username provided by user at registration]
    * @return {[Promise<UserI | undefined>]} [Returns user's details]
    */
-  async findOne(userName: string): Promise<UserI | undefined> {
-    return this.userRepository.findOne({ userName });
+  async findOne(userName: string): Promise<UserDocument | undefined> {
+    return this.userModel.findOne({ userName }).exec();
   }
 
   /*
@@ -40,9 +38,10 @@ export class UsersService {
    * @param {[UserI]} user [User Interface]
    * @return {[Promise<UserI & UserEntity>]} [Returns new user's details]
    */
-  async createUser(user: UserI): Promise<UserI & UserEntity> {
+  async createUser(user): Promise<UserDocument> {
     try {
-      return await this.userRepository.save(user);
+      const createdUser = new this.userModel(user);
+      return createdUser.save();
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -54,9 +53,10 @@ export class UsersService {
    * @param {[string]} newPasswordHash [New value to replace existing value]
    * @return {[Promise<UserI & UserEntity>]} [Returns whether row was updated or not]
    */
-  async updatePassword(id: number, newPasswordHash: string) {
+  async updatePassword(name: string, newPasswordHash: string) {
     try {
-      return this.userRepository.update(id, { password: newPasswordHash });
+      const existingUser = this.userModel.findOne({ name });
+      existingUser.update({ password: newPasswordHash });
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
