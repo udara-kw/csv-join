@@ -4,11 +4,10 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CSVModule } from './modules/csv_join/csv.modue';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { CronModule } from './modules/cron/cron.module';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
+import { MongooseModule } from '@nestjs/mongoose';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const path = require('path');
@@ -22,17 +21,9 @@ dotenv.config();
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: 5432,
-      username: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      entities: ['dist/**/*.entity.js'],
-      autoLoadEntities: true,
-      synchronize: true,
-    }),
+    MongooseModule.forRoot(
+      'mongodb://' + process.env.DB_HOST + '/' + process.env.DB_NAME,
+    ),
     WinstonModule.forRoot({
       format: winston.format.combine(
         winston.format.timestamp(),
@@ -55,7 +46,6 @@ dotenv.config();
     UsersModule,
     AuthModule,
     CSVModule,
-    CronModule,
   ],
   controllers: [AppController],
   providers: [AppService],

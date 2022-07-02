@@ -16,8 +16,8 @@ import { CSVDto } from '../dto/csv';
 import { Logger } from 'winston';
 import { RolesGuard } from '../../users/roles.guard';
 
-@ApiTags('Namerider')
-@Controller('nameRider')
+@ApiTags('CSV')
+@Controller('csv')
 export class CSVController {
   constructor(
     private readonly csvService: CSVService,
@@ -27,10 +27,10 @@ export class CSVController {
 
   // Add new TLD to system
   @ApiBearerAuth('JWT')
-  @Post('addTLD')
-  @AllowedRoles(Role.ADMIN, Role.VIRTUA)
+  @Post('addCSV')
+  @AllowedRoles(Role.ADMIN, Role.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  addTLD(@Body() req: CSVDto): Promise<any> {
+  addCSV(@Body() req: CSVDto): Promise<any> {
     if (req.secret != process.env.CLIENT_SECRET) {
       throw new HttpException('wrong secret code', HttpStatus.UNAUTHORIZED);
     }

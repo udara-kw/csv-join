@@ -1,16 +1,15 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document } from 'mongoose';
 
-@Entity()
-export class CSVEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+export type CSVDocument = CSV & Document;
 
-  @Column()
+@Schema()
+export class CSV {
+  @Prop()
   name: string;
 
-  @Column({ unique: true })
-  userName: string;
-
-  @Column()
-  password: string;
+  @Prop()
+  tag: string[];
 }
+
+export const CSVSchema = SchemaFactory.createForClass(CSV);

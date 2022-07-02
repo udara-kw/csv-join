@@ -17,11 +17,9 @@ export class RegisterDto {
   @ApiProperty()
   name: string;
   @ApiProperty()
-  username: string;
-  @ApiProperty()
   password: string;
   @ApiProperty()
-  roles: Role[];
+  role: Role;
   @ApiProperty()
   secret: string;
 }

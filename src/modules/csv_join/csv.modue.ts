@@ -1,12 +1,15 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { CSVService } from './service/csv.service';
 import { CSVController } from './controller/csv.controller';
-import { CSVEntity } from './models/csv.entity';
+import { CSV, CSVSchema } from './models/csv.schema';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CSVEntity]), HttpModule],
+  imports: [
+    MongooseModule.forFeature([{ name: CSV.name, schema: CSVSchema }]),
+    HttpModule,
+  ],
   providers: [CSVService],
   exports: [CSVService],
   controllers: [CSVController],

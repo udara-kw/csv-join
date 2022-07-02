@@ -37,7 +37,7 @@ async function bootstrap() {
   SwaggerModule.setup('/', app, document);
 
   // Start Listening
-  await app.listen(parseInt(process.env.HQ_PORT));
+  await app.listen(parseInt(process.env.PORT));
 }
 
 bootstrap();

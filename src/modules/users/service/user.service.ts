@@ -29,8 +29,8 @@ export class UserService {
    * @param {[string]} username [Username provided by user at registration]
    * @return {[Promise<UserI | undefined>]} [Returns user's details]
    */
-  async findOne(userName: string): Promise<UserDocument | undefined> {
-    return this.userModel.findOne({ userName }).exec();
+  async findOne(name: string): Promise<UserDocument | undefined> {
+    return await this.userModel.findOne({ name }).exec();
   }
 
   /*
@@ -49,7 +49,7 @@ export class UserService {
 
   /*
    * Update password column in user table
-   * @param {[int]} id [User's id]
+   * @param {[string]} name [User's name]
    * @param {[string]} newPasswordHash [New value to replace existing value]
    * @return {[Promise<UserI & UserEntity>]} [Returns whether row was updated or not]
    */

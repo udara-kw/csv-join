@@ -19,7 +19,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
       .then((validate) => {
         if (validate != null) {
           request.body.user.id = validate.id;
-          request.body.user.roles = validate.roles;
+          request.body.user.role = validate.role;
         }
         return validate != null;
       });

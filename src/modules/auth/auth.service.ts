@@ -1,16 +1,14 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from 'src/modules/users/service/users.service';
+import { UserService } from '../users/service/user.service';
 import * as bcrypt from 'bcrypt';
-import { UserI } from '../users/models/user.interface';
-import { Role } from '../users/enum/role.enum';
-import { UserEntity } from '../users/models/user.entity';
+import { UserDocument } from '../users/models/user.schema';
 import { Logger } from 'winston';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UsersService,
+    private userService: UserService,
     private jwtService: JwtService,
     @Inject('winston')
     private readonly logger: Logger,
@@ -22,13 +20,11 @@ export class AuthService {
    * @param {[string]} password [Password provided by user]
    * @return {[Promise<any>]} [Returns user details if user exists or null]
    */
-  async validateUser(userName: string, password: string): Promise<any> {
-    const user = await this.userService.findOne(userName);
+  async validateUser(name: string, password: string): Promise<any> {
+    const user = await this.userService.findOne(name);
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, userName, ...rest } = user;
-      return rest;
+      return { id: user.id, name: user.name, role: user.role };
     }
     return null;
   }
@@ -39,7 +35,7 @@ export class AuthService {
    * @return {[Promise<any>]} [Returns access token and user's name]
    */
   async login(user: any) {
-    const payload = { name: user.name, roles: user.roles, sub: user.id };
+    const payload = { name: user.name, role: user.role, sub: user.id };
     return {
       name: user.name,
       access_token: this.jwtService.sign(payload, {
@@ -53,44 +49,20 @@ export class AuthService {
    * @param {[Object]} UserDetails [Name, Username, Password, Roles and Client Secret are required]
    * @return {[Promise<any>]} [Returns new user's non-sensitive details]
    */
-  async register({ name, username, password, roles, secret }: any) {
+  async register({ name, password, role, secret }: any) {
     if (secret != process.env.CLIENT_SECRET) {
       return new HttpException('wrong secret', HttpStatus.UNAUTHORIZED);
     }
-    const rolesList: Role[] = [];
-    for (let i = 0; i < roles.length; i++) {
-      const role: string = roles[i];
-      if (!['admin', 'bot', 'virtua'].includes(role)) {
-        return new HttpException('bad role', HttpStatus.BAD_REQUEST);
-      } else {
-        rolesList.push(
-          role == 'admin' ? Role.ADMIN : role == 'bot' ? Role.BOT : Role.VIRTUA,
-        );
-      }
-    }
-    // const strongRegex = new RegExp(
-    //   '^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})',
-    // );
-    // if (!strongRegex.test(password)) {
-    //   return new HttpException(
-    //     'password strength is not enough',
-    //     HttpStatus.NOT_ACCEPTABLE,
-    //   );
-    // }
     try {
-      const newUser: UserI = {
-        id: null,
+      const newUser = {
         name: name,
-        userName: username,
         password: await bcrypt.hash(password, await bcrypt.genSalt()),
-        roles: rolesList,
+        role: role,
       };
       const createdUser = await this.userService.createUser(newUser);
       return {
-        id: createdUser.id,
         name: createdUser.name,
-        username: createdUser.userName,
-        roles: createdUser.roles,
+        roles: createdUser.role,
       };
     } catch (e) {
       this.logger.error('Error when creating new user: ' + e);
@@ -103,13 +75,11 @@ export class AuthService {
    * @return {[Promise<UserEntity[]>]} [Returns all users' details]
    */
   async viewAllUsers() {
-    const users: UserEntity[] = await this.userService.findAll();
-    return users?.map((user: UserEntity) => {
+    const users: UserDocument[] = await this.userService.findAll();
+    return users?.map((user: UserDocument) => {
       return {
-        id: user.id,
         name: user.name,
-        userName: user.userName,
-        roles: user.roles,
+        role: user.role,
       };
     });
   }
@@ -131,15 +101,6 @@ export class AuthService {
       return new HttpException('no user', HttpStatus.NO_CONTENT);
     }
     if (await bcrypt.compare(password, user.password)) {
-      // const strongRegex = new RegExp(
-      //   '^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})',
-      // );
-      // if (!strongRegex.test(password)) {
-      //   return new HttpException(
-      //     'new password strength is not enough',
-      //     HttpStatus.NOT_ACCEPTABLE,
-      //   );
-      // }
       try {
         const newPasswordHash = await bcrypt.hash(
           newPassword,

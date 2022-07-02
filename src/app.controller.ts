@@ -1,17 +1,15 @@
 import {
-  Controller,
-  Post,
-  UseGuards,
   Body,
+  Controller,
+  Get,
   HttpException,
   HttpStatus,
-  Get,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './modules/auth/auth.service';
 import { LocalAuthGuard } from './modules/auth/local-auth-guard';
-import { AppService } from './app.service';
 import { ChangePasswordDto, LoginDto, RegisterDto } from './dto/user.dto';
-import { WhoisDto } from './dto/whois.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AllowedRoles } from './modules/users/roles.decorator';
 import { Role } from './modules/users/enum/role.enum';
@@ -20,10 +18,7 @@ import { RolesGuard } from './modules/users/roles.guard';
 
 @Controller()
 export class AppController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly appService: AppService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   //Login the user and return JWT token
   @UseGuards(LocalAuthGuard)
@@ -33,33 +28,18 @@ export class AppController {
   }
 
   // Add new user to the system
-  @ApiBearerAuth('JWT')
+  // @ApiBearerAuth('JWT')
   @Post('addUser')
-  @AllowedRoles(Role.ADMIN)
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  // @AllowedRoles(Role.ADMIN)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
   addUser(@Body() req: RegisterDto): any {
     return this.authService.register(req);
-  }
-
-  @Post('strengthTest')
-  strengthTest(@Body() password: string) {
-    const strongRegex = new RegExp(
-      '^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})$',
-    );
-    if (strongRegex.test(password)) {
-      return true;
-    } else {
-      throw new HttpException(
-        'password strength is not enough',
-        HttpStatus.NOT_ACCEPTABLE,
-      );
-    }
   }
 
   // Change password to a new one
   @ApiBearerAuth('JWT')
   @Post('changePassword')
-  @AllowedRoles(Role.ADMIN, Role.VIRTUA)
+  @AllowedRoles(Role.ADMIN, Role.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   changePassword(@Body() req: ChangePasswordDto): any {
     if (req.secret != process.env.CLIENT_SECRET) {
@@ -79,19 +59,5 @@ export class AppController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   viewAllUsers(): any {
     return this.authService.viewAllUsers();
-  }
-
-  @Post('whois')
-  getWhois(@Body() req: WhoisDto): any {
-    if (req.domains.length < 1) {
-      throw new HttpException('Empty', HttpStatus.NO_CONTENT);
-    }
-    const domains = req.domains.map((d) => {
-      return d[0];
-    });
-    const dropTimes = req.domains.map((d) => {
-      return new Date(d[1]);
-    });
-    return this.appService.whoisLookup(domains, dropTimes);
   }
 }
