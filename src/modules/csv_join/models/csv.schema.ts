@@ -9,7 +9,13 @@ export class CSV {
   name: string;
 
   @Prop()
-  tag: string[];
+  username: string;
+
+  @Prop()
+  tags: string[];
+
+  @Prop({ type: 'Object' })
+  content: any;
 }
 
 export const CSVSchema = SchemaFactory.createForClass(CSV);

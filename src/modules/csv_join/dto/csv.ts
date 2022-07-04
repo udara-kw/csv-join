@@ -1,12 +1,25 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class CSVDto {
   @ApiProperty()
-  tld: string;
+  name: string;
 
   @ApiProperty()
-  registry: string;
+  username: string;
 
   @ApiProperty()
-  secret: string;
+  tags: string[];
+}
+
+export class CSVByTagDto {
+  @ApiProperty()
+  username: string;
+
+  @ApiProperty()
+  tags: string[];
+}
+
+export class ViewAllDto {
+  @ApiProperty()
+  username: string;
 }

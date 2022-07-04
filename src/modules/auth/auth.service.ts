@@ -49,19 +49,21 @@ export class AuthService {
    * @param {[Object]} UserDetails [Name, Username, Password, Roles and Client Secret are required]
    * @return {[Promise<any>]} [Returns new user's non-sensitive details]
    */
-  async register({ name, password, role, secret }: any) {
+  async register({ name, email, password, role, secret }: any) {
     if (secret != process.env.CLIENT_SECRET) {
       return new HttpException('wrong secret', HttpStatus.UNAUTHORIZED);
     }
     try {
       const newUser = {
         name: name,
+        email: email,
         password: await bcrypt.hash(password, await bcrypt.genSalt()),
         role: role,
       };
       const createdUser = await this.userService.createUser(newUser);
       return {
         name: createdUser.name,
+        email: createdUser.email,
         roles: createdUser.role,
       };
     } catch (e) {
@@ -79,6 +81,7 @@ export class AuthService {
     return users?.map((user: UserDocument) => {
       return {
         name: user.name,
+        email: user.email,
         role: user.role,
       };
     });

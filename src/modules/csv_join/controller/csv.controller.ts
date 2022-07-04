@@ -1,10 +1,13 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
   Inject,
+  Param,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -12,7 +15,7 @@ import { CSVService } from '../service/csv.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { AllowedRoles } from '../../users/roles.decorator';
 import { Role } from '../../users/enum/role.enum';
-import { CSVDto } from '../dto/csv';
+import { CSVByTagDto, CSVDto, ViewAllDto } from '../dto/csv';
 import { Logger } from 'winston';
 import { RolesGuard } from '../../users/roles.guard';
 
@@ -25,16 +28,30 @@ export class CSVController {
     private readonly logger: Logger,
   ) {}
 
-  // Add new TLD to system
+  // Add new CSV to system
   @ApiBearerAuth('JWT')
-  @Post('addCSV')
+  @Post('addOne')
   @AllowedRoles(Role.ADMIN, Role.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  addCSV(@Body() req: CSVDto): Promise<any> {
-    if (req.secret != process.env.CLIENT_SECRET) {
-      throw new HttpException('wrong secret code', HttpStatus.UNAUTHORIZED);
-    }
-    // return this.csvService.addTLD(req.tld, req.registry);
-    return;
+  async addCSV(@Body() req: CSVDto): Promise<any> {
+    return this.csvService.addOne(req.name, req.username, req.tags);
+  }
+
+  // View all csv files
+  @ApiBearerAuth('JWT')
+  @Get('viewAll/:username')
+  @AllowedRoles(Role.ADMIN, Role.USER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  viewAllCSV(@Param() params: ViewAllDto): Promise<any> {
+    return this.csvService.viewAll(params.username);
+  }
+
+  // View all csv files
+  @ApiBearerAuth('JWT')
+  @Post('viewAll')
+  @AllowedRoles(Role.ADMIN, Role.USER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  viewAllByTag(@Body() req: CSVByTagDto): Promise<any> {
+    return this.csvService.viewByTags(req.username, req.tags);
   }
 }
