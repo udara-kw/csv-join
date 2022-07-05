@@ -33,6 +33,4 @@ export class ChangePasswordDto {
   oldPassword: string;
   @ApiProperty()
   newPassword: string;
-  @ApiProperty()
-  secret: string;
 }

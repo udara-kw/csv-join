@@ -1,10 +1,12 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { Logger } from 'winston';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CSV, CSVDocument } from '../models/csv.schema';
 import { parse } from 'papaparse';
+import { createReadStream, statSync } from 'fs';
+import path from 'path';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const appRoot = require('app-root-path');
@@ -14,6 +16,9 @@ const fs = require('fs/promises');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const walk = require('walk');
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const AdmZip = require('adm-zip');
 
 @Injectable()
 export class CSVService {
@@ -50,18 +55,31 @@ export class CSVService {
         headerName: column,
         minWidth: 200,
         type: 'string',
-        resizable: true,
         editable: true,
       };
     });
-    const rows = records.map((x) => {
-      return { id: x.id, tags: x.tags, ...x.content };
+    const rows = records.map((record) => {
+      return {
+        id: record.id,
+        tags: record.tags,
+        filename: record.name,
+        ...record.content,
+      };
     });
     return {
       columns: [
         {
           field: 'tags',
           headerName: 'Tags',
+          align: 'right',
+          sortable: false,
+          valueFormatter: (params) => `$${params.value}`,
+          hide: true,
+          lockVisible: false,
+        },
+        {
+          field: 'filename',
+          headerName: 'Filename',
           align: 'right',
           sortable: false,
           valueFormatter: (params) => `$${params.value}`,
@@ -95,5 +113,47 @@ export class CSVService {
         content: record,
       });
     });
+  }
+
+  async uploadFile(files, tags: string[], username: string) {
+    for (const csvFile of files) {
+      const fileData = JSON.parse(csvFile);
+      try {
+        const filename = fileData.file.path;
+        const decodedData = atob(fileData.data.split(',')[1]);
+        await fs.writeFile('./uploadCSVFiles/' + filename, decodedData);
+        const parsedCSV = await parse(decodedData, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => results.data,
+        });
+        parsedCSV?.data.map((record) => {
+          return new this.csvModel({
+            name: filename,
+            username: username,
+            tags: tags,
+            content: record,
+          });
+        });
+      } catch (e) {
+        console.log(e);
+        throw new HttpException(e, HttpStatus.NOT_ACCEPTABLE);
+      }
+    }
+    return { success: true };
+  }
+
+  async downloadFiles(filenames: string[], username: string) {
+    const zip = new AdmZip();
+    try {
+      for (const filename of filenames) {
+        const filepath = appRoot + '/uploadCSVFiles/' + filename;
+        zip.addLocalFile(filepath);
+      }
+      return zip.toBuffer();
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(e, HttpStatus.NO_CONTENT);
+    }
   }
 }

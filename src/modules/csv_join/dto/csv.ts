@@ -23,3 +23,22 @@ export class ViewAllDto {
   @ApiProperty()
   username: string;
 }
+
+export class UploadFileDto {
+  @ApiProperty()
+  username: string;
+
+  @ApiProperty()
+  tags: string[];
+
+  @ApiProperty()
+  files: any;
+}
+
+export class DownloadFileDto {
+  @ApiProperty()
+  username: string;
+
+  @ApiProperty()
+  filename: string;
+}

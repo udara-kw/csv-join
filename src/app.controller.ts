@@ -42,9 +42,6 @@ export class AppController {
   @AllowedRoles(Role.ADMIN, Role.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   changePassword(@Body() req: ChangePasswordDto): any {
-    if (req.secret != process.env.CLIENT_SECRET) {
-      return new HttpException('bad secret', HttpStatus.UNAUTHORIZED);
-    }
     return this.authService.changePassword(
       req.username,
       req.oldPassword,
