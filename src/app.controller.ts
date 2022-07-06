@@ -1,15 +1,20 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
-  HttpException,
-  HttpStatus,
+  Param,
   Post,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './modules/auth/auth.service';
 import { LocalAuthGuard } from './modules/auth/local-auth-guard';
-import { ChangePasswordDto, LoginDto, RegisterDto } from './dto/user.dto';
+import {
+  ChangePasswordDto,
+  DeleteUserDto,
+  LoginDto,
+  RegisterDto,
+} from './dto/user.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AllowedRoles } from './modules/users/roles.decorator';
 import { Role } from './modules/users/enum/role.enum';
@@ -28,10 +33,10 @@ export class AppController {
   }
 
   // Add new user to the system
-  // @ApiBearerAuth('JWT')
+  @ApiBearerAuth('JWT')
   @Post('addUser')
-  // @AllowedRoles(Role.ADMIN)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
+  @AllowedRoles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   addUser(@Body() req: RegisterDto): any {
     return this.authService.register(req);
   }
@@ -56,5 +61,14 @@ export class AppController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   viewAllUsers(): any {
     return this.authService.viewAllUsers();
+  }
+
+  // View current users registered with system
+  @ApiBearerAuth('JWT')
+  @Delete('deleteUser/:username')
+  @AllowedRoles(Role.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  deleteUser(@Param() params: DeleteUserDto): any {
+    return this.authService.deleteUser(params.username);
   }
 }

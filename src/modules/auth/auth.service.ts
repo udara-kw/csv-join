@@ -4,6 +4,7 @@ import { UserService } from '../users/service/user.service';
 import * as bcrypt from 'bcrypt';
 import { UserDocument } from '../users/models/user.schema';
 import { Logger } from 'winston';
+import { Role } from '../users/enum/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -49,7 +50,9 @@ export class AuthService {
    * @param {[Object]} UserDetails [Name, Username, Password, Roles and Client Secret are required]
    * @return {[Promise<any>]} [Returns new user's non-sensitive details]
    */
-  async register({ name, email, password, role, secret }: any) {
+  async register(req) {
+    const { name, email, password, role, secret } = req;
+    console.log('req: ', req);
     if (secret != process.env.CLIENT_SECRET) {
       return new HttpException('wrong secret', HttpStatus.UNAUTHORIZED);
     }
@@ -58,9 +61,10 @@ export class AuthService {
         name: name,
         email: email,
         password: await bcrypt.hash(password, await bcrypt.genSalt()),
-        role: role,
+        role: role == 'Admin' ? Role.ADMIN : Role.USER,
       };
       const createdUser = await this.userService.createUser(newUser);
+      console.log(createdUser);
       return {
         name: createdUser.name,
         email: createdUser.email,
@@ -85,6 +89,19 @@ export class AuthService {
         role: user.role,
       };
     });
+  }
+
+  async deleteUser(username: string) {
+    const user: UserDocument = await this.userService.findOne(username);
+    if (!user) {
+      throw new HttpException('No user', HttpStatus.NO_CONTENT);
+    } else {
+      if (user.role == Role.ADMIN) {
+        throw new HttpException('Not Allowed', HttpStatus.METHOD_NOT_ALLOWED);
+      } else {
+        return await this.userService.deleteUser(user.id);
+      }
+    }
   }
 
   /*

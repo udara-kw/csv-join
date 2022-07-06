@@ -1,4 +1,6 @@
 import {
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -43,6 +45,7 @@ export class UserService {
       const createdUser = new this.userModel(user);
       return createdUser.save();
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -59,6 +62,16 @@ export class UserService {
       existingUser.update({ password: newPasswordHash });
     } catch (error) {
       throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async deleteUser(id: string) {
+    try {
+      await this.userModel.findByIdAndDelete(id);
+      return { success: true };
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

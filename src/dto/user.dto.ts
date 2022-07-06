@@ -34,3 +34,8 @@ export class ChangePasswordDto {
   @ApiProperty()
   newPassword: string;
 }
+
+export class DeleteUserDto {
+  @ApiProperty()
+  username: string;
+}

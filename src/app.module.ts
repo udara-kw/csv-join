@@ -21,10 +21,10 @@ dotenv.config();
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    MongooseModule.forRoot(process.env.MONGO_URL),
     // MongooseModule.forRoot(
     //   'mongodb://' + process.env.DB_HOST + '/' + process.env.DB_NAME,
     // ),
+    MongooseModule.forRoot(process.env.MONGO_URL),
     WinstonModule.forRoot({
       format: winston.format.combine(
         winston.format.timestamp(),
