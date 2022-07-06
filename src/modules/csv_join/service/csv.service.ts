@@ -5,8 +5,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CSV, CSVDocument } from '../models/csv.schema';
 import { parse } from 'papaparse';
-import { createReadStream, statSync } from 'fs';
-import path from 'path';
+import { statSync } from 'fs';
+import { join } from 'path';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const appRoot = require('app-root-path');
@@ -155,5 +155,69 @@ export class CSVService {
       console.log(e);
       throw new HttpException(e, HttpStatus.NO_CONTENT);
     }
+  }
+
+  async viewAllFiles(username: string) {
+    const files = await this.csvModel.find({ username: username });
+    const filenames = [
+      ...new Set(
+        files.map((file) => {
+          return file.name;
+        }),
+      ),
+    ];
+
+    const tags = [
+      ...new Set(
+        files.map((file) => {
+          return file.tags;
+        }),
+      ),
+    ];
+
+    const rows = filenames.map((file, index) => {
+      const filepath = join(process.cwd(), 'uploadCSVFiles', file);
+      const stats = statSync(filepath);
+      return {
+        id: file,
+        name: file,
+        size: stats.size,
+        created: stats.birthtime,
+        tags: tags[index],
+      };
+    });
+    const columns = [
+      {
+        field: 'name',
+        headerName: 'Filename',
+        minWidth: 400,
+        type: 'string',
+        editable: true,
+      },
+      {
+        field: 'size',
+        headerName: 'File size (bytes)',
+        minWidth: 200,
+        type: 'string',
+        editable: true,
+      },
+      {
+        field: 'created',
+        headerName: 'Created on',
+        minWidth: 300,
+        type: 'string',
+        editable: true,
+      },
+      {
+        field: 'tags',
+        headerName: 'Tags',
+        align: 'right',
+        sortable: false,
+        valueFormatter: (params) => `$${params.value}`,
+        hide: true,
+        lockVisible: false,
+      },
+    ];
+    return { rows, columns };
   }
 }

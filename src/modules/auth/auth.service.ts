@@ -52,7 +52,6 @@ export class AuthService {
    */
   async register(req) {
     const { name, email, password, role, secret } = req;
-    console.log('req: ', req);
     if (secret != process.env.CLIENT_SECRET) {
       return new HttpException('wrong secret', HttpStatus.UNAUTHORIZED);
     }
@@ -64,7 +63,6 @@ export class AuthService {
         role: role == 'Admin' ? Role.ADMIN : Role.USER,
       };
       const createdUser = await this.userService.createUser(newUser);
-      console.log(createdUser);
       return {
         name: createdUser.name,
         email: createdUser.email,

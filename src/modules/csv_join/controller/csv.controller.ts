@@ -71,6 +71,15 @@ export class CSVController {
 
   // View all csv files
   @ApiBearerAuth('JWT')
+  @Get('viewAllFiles/:username')
+  @AllowedRoles(Role.ADMIN, Role.USER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  viewAllFiles(@Param() params: ViewAllDto): Promise<any> {
+    return this.csvService.viewAllFiles(params.username);
+  }
+
+  // View all csv files
+  @ApiBearerAuth('JWT')
   @Post('uploadFile')
   @AllowedRoles(Role.ADMIN, Role.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -83,12 +92,8 @@ export class CSVController {
   @Post('downloadFiles')
   @AllowedRoles(Role.ADMIN, Role.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  async downloadCSVs(
-    @Body() req: DownloadFileDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async downloadCSVs(@Body() req: DownloadFileDto) {
     const filepath = join(process.cwd(), 'uploadCSVFiles', req.filename);
-    console.log('downloading :', filepath);
     try {
       const file = await fs.readFile(filepath);
       return file.toString();

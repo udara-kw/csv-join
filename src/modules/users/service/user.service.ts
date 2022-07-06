@@ -56,10 +56,15 @@ export class UserService {
    * @param {[string]} newPasswordHash [New value to replace existing value]
    * @return {[Promise<UserI & UserEntity>]} [Returns whether row was updated or not]
    */
-  async updatePassword(name: string, newPasswordHash: string) {
+  async updatePassword(id: string, newPasswordHash: string) {
     try {
-      const existingUser = this.userModel.findOne({ name });
-      existingUser.update({ password: newPasswordHash });
+      await this.userModel.findOneAndUpdate(
+        { id: id },
+        {
+          password: newPasswordHash,
+        },
+      );
+      return { success: true };
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }

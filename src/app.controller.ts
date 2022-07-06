@@ -47,6 +47,7 @@ export class AppController {
   @AllowedRoles(Role.ADMIN, Role.USER)
   @UseGuards(JwtAuthGuard, RolesGuard)
   changePassword(@Body() req: ChangePasswordDto): any {
+    console.log(req);
     return this.authService.changePassword(
       req.username,
       req.oldPassword,

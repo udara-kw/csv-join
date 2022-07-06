@@ -20,7 +20,7 @@ dotenv.config();
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     // MongooseModule.forRoot(
     //   'mongodb://' + process.env.DB_HOST + '/' + process.env.DB_NAME,
     // ),
